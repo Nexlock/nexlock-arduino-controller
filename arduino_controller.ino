@@ -118,7 +118,7 @@ void loop()
         lastStatusSend = currentTime;
     }
 
-    delay(50);
+    delay(200);
 }
 
 void handleESP32Communication()
@@ -193,11 +193,17 @@ void lockLocker(uint8_t lockerIndex)
     lockers[arrayIndex].lastUpdate = millis();
 
     updateLCD("Locker " + String(lockerIndex), "Locked");
-    sendResponse(CMD_LOCK, lockerIndex, RESP_ACK);
 
-    // Send status update after successful lock
-    delay(100);
-    sendResponse(CMD_STATUS, lockerIndex, RESP_LOCKED);
+    // Send acknowledgment first
+    sendResponse(CMD_LOCK, lockerIndex, RESP_ACK);
+    delay(150); // Increased delay
+
+    // Send status update to confirm lock state - send multiple times for reliability
+    for (int i = 0; i < 3; i++)
+    {
+        sendResponse(CMD_STATUS, lockerIndex, RESP_LOCKED);
+        delay(50);
+    }
 
     Serial.print("Successfully locked locker ");
     Serial.println(lockerIndex);
@@ -222,11 +228,17 @@ void unlockLocker(uint8_t lockerIndex)
     lockers[arrayIndex].lastUpdate = millis();
 
     updateLCD("Locker " + String(lockerIndex), "Unlocked");
-    sendResponse(CMD_UNLOCK, lockerIndex, RESP_ACK);
 
-    // Send status update after successful unlock
-    delay(100);
-    sendResponse(CMD_STATUS, lockerIndex, RESP_UNLOCKED);
+    // Send acknowledgment first
+    sendResponse(CMD_UNLOCK, lockerIndex, RESP_ACK);
+    delay(150); // Increased delay
+
+    // Send status update to confirm unlock state - send multiple times for reliability
+    for (int i = 0; i < 3; i++)
+    {
+        sendResponse(CMD_STATUS, lockerIndex, RESP_UNLOCKED);
+        delay(50);
+    }
 
     Serial.print("Successfully unlocked locker ");
     Serial.println(lockerIndex);
@@ -261,7 +273,7 @@ void sendAllStatus()
     for (int i = 1; i <= 3; i++)
     {
         sendLockerStatus(i);
-        delay(50);
+        delay(100); // Increased delay for reliability
     }
 }
 
